@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard Cliente</title>
+
+<style>
+:root {
+    color-scheme: dark;
+    --bg: #111;
+    --panel: #1e1e1e;
+    --panel-2: #2a2a2a;
+    --text: #fff;
+    --muted: #b9b9b9;
+    --danger: #ff6b6b;
+    --success: #73e29b;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f0f0f, #2b2b2b);
+    color: var(--text);
+}
+
+.container {
+    width: min(1100px, 100%);
+    margin: auto;
+    padding: 20px;
+}
+
+.header,
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.card {
+    background: var(--panel);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+.service,
+.appointment {
+    background: var(--panel-2);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+}
+
+label {
+    display: grid;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background: #141414;
+    color: var(--text);
+    padding: 11px;
+    font: inherit;
+}
+
+textarea {
+    min-height: 88px;
+    resize: vertical;
+}
+
+button,
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 11px 15px;
+    cursor: pointer;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+button:hover,
+.button:hover {
+    background: #ddd;
+}
+
+.button.secondary {
+    background: #333;
+    color: #fff;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+.error {
+    color: var(--danger);
+    margin-top: 10px;
+}
+
+.success {
+    color: var(--success);
+    margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+    .header,
+    .actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    button,
+    .button {
+        width: 100%;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+    <div class="header">
+        <div>
+            <h1>Dashboard Cliente</h1>
+            <p id="status" class="muted">Carregando usuario...</p>
+        </div>
+        <div class="actions">
+            <a id="barberLink" class="button secondary" href="/barber.html" hidden>Area do barbeiro</a>
+            <a id="adminLink" class="button secondary" href="/admin.html" hidden>Area admin</a>
+            <button id="logout">Sair</button>
+        </div>
+    </div>
+
+    <section class="card">
+        <h2 id="welcome">Ola</h2>
+        <p class="muted">Escolha um servico, um barbeiro e o horario para criar seu agendamento.</p>
+    </section>
+
+    <section class="card">
+        <h2>Novo agendamento</h2>
+        <form id="appointmentForm">
+            <div class="form-grid">
+                <label>
+                    Servico
+                    <select id="serviceId" required></select>
+                </label>
+                <label>
+                    Barbeiro
+                    <select id="barberId" required></select>
+                </label>
+                <label>
+                    Data e hora
+                    <input id="scheduledAt" type="datetime-local" required>
+                </label>
+            </div>
+            <label style="margin-top: 12px;">
+                Observacoes
+                <textarea id="notes" placeholder="Ex: corte baixo, barba desenhada"></textarea>
+            </label>
+            <div class="actions" style="margin-top: 14px;">
+                <button type="submit">Agendar</button>
+                <p id="formMessage" class="muted"></p>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Servicos</h2>
+        <div id="services" class="grid"></div>
+        <p id="servicesError" class="error"></p>
+    </section>
+
+    <section class="card">
+        <h2>Meus agendamentos</h2>
+        <div id="appointments" class="grid"></div>
+        <p id="appointmentsError" class="error"></p>
+    </section>
+</div>
+
+<script>
+const API = "http://localhost:3000";
+
+async function apiFetch(url, options = {}) {
+    const res = await fetch(API + url, {
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...options.headers },
+        ...options
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+        throw new Error(data?.message || "Erro na requisicao");
+    }
+
+    return data;
+}
+
+function getList(response) {
+    return Array.isArray(response) ? response : response?.data || [];
+}
+
+function formatDate(value) {
+    return new Date(value).toLocaleString("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "short"
+    });
+}
+
+async function loadProfile() {
+    const res = await apiFetch("/api/profile");
+    const user = res.data || res;
+
+    document.getElementById("welcome").innerText = `Bem-vindo, ${user.name}`;
+    document.getElementById("status").innerText = `Funcao: ${user.role}`;
+
+    document.getElementById("barberLink").hidden = !["BARBER", "ADMIN"].includes(user.role);
+    document.getElementById("adminLink").hidden = user.role !== "ADMIN";
+}
+
+async function loadServices() {
+    const services = getList(await apiFetch("/api/services"));
+    const container = document.getElementById("services");
+    const select = document.getElementById("serviceId");
+
+    container.innerHTML = "";
+    select.innerHTML = '<option value="">Selecione um servico</option>';
+
+    if (!services.length) {
+        container.innerHTML = '<p class="muted">Nenhum servico cadastrado.</p>';
+        return;
+    }
+
+    services.forEach(service => {
+        select.insertAdjacentHTML(
+            "beforeend",
+            `<option value="${service.id}">${service.name} - R$ ${(service.priceInCents / 100).toFixed(2)}</option>`
+        );
+
+        const div = document.createElement("div");
+        div.className = "service";
+        div.innerHTML = `
+            <h3>${service.name}</h3>
+            <p>${service.description || ""}</p>
+            <p class="muted">${service.durationMinutes} min</p>
+            <strong>R$ ${(service.priceInCents / 100).toFixed(2)}</strong>
+        `;
+        container.appendChild(div);
+    });
+}
+
+async function loadBarbers() {
+    const barbers = getList(await apiFetch("/api/barbers"));
+    const select = document.getElementById("barberId");
+
+    select.innerHTML = '<option value="">Selecione um barbeiro</option>';
+
+    barbers.forEach(barber => {
+        select.insertAdjacentHTML("beforeend", `<option value="${barber.id}">${barber.name}</option>`);
+    });
+}
+
+async function loadAppointments() {
+    const appointments = getList(await apiFetch("/api/appointments"));
+    const container = document.getElementById("appointments");
+    container.innerHTML = "";
+
+    if (!appointments.length) {
+        container.innerHTML = '<p class="muted">Voce ainda nao tem agendamentos.</p>';
+        return;
+    }
+
+    appointments.forEach(appointment => {
+        const div = document.createElement("div");
+        div.className = "appointment";
+        div.innerHTML = `
+            <h3>${appointment.service?.name || "Servico"}</h3>
+            <p><strong>Barbeiro:</strong> ${appointment.barber?.name || "-"}</p>
+            <p><strong>Horario:</strong> ${formatDate(appointment.scheduledAt)}</p>
+            <p><strong>Status:</strong> ${appointment.status}</p>
+            <p class="muted">${appointment.notes || ""}</p>
+        `;
+        container.appendChild(div);
+    });
+}
+
+document.getElementById("appointmentForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const message = document.getElementById("formMessage");
+    message.className = "muted";
+    message.innerText = "Criando agendamento...";
+
+    try {
+        const scheduledAt = document.getElementById("scheduledAt").value;
+
+        await apiFetch("/api/appointments", {
+            method: "POST",
+            body: JSON.stringify({
+                serviceId: Number(document.getElementById("serviceId").value),
+                barberId: Number(document.getElementById("barberId").value),
+                scheduledAt: new Date(scheduledAt).toISOString(),
+                notes: document.getElementById("notes").value || undefined
+            })
+        });
+
+        event.target.reset();
+        message.className = "success";
+        message.innerText = "Agendamento criado com sucesso.";
+        await loadAppointments();
+    } catch (error) {
+        message.className = "error";
+        message.innerText = error.message;
+    }
+});
+
+document.getElementById("logout").onclick = async () => {
+    try {
+        await apiFetch("/api/logout", { method: "POST" });
+    } finally {
+        window.location.href = "/login.html";
+    }
+};
+
+async function init() {
+    try {
+        await loadProfile();
+        await Promise.all([loadServices(), loadBarbers(), loadAppointments()]);
+    } catch (error) {
+        window.location.href = "/login.html";
+    }
+}
+
+init();
+</script>
+</body>
+</html>

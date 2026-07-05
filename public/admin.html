@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Area Admin</title>
+
+<style>
+:root {
+    color-scheme: dark;
+    --panel: #1e1e1e;
+    --panel-2: #2a2a2a;
+    --muted: #b9b9b9;
+    --danger: #ff6b6b;
+    --success: #73e29b;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f0f0f, #2b2b2b);
+    color: #fff;
+}
+
+.container {
+    width: min(1100px, 100%);
+    margin: auto;
+    padding: 20px;
+}
+
+.header,
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.card,
+.user {
+    background: var(--panel);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.user {
+    background: var(--panel-2);
+    margin-top: 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+button,
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 11px 15px;
+    cursor: pointer;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.button.secondary,
+button.secondary {
+    background: #333;
+    color: #fff;
+}
+
+button:hover,
+.button:hover {
+    background: #ddd;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+.error {
+    color: var(--danger);
+}
+
+.success {
+    color: var(--success);
+}
+
+@media (max-width: 640px) {
+    .header,
+    .actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    button,
+    .button {
+        width: 100%;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+    <div class="header">
+        <div>
+            <h1>Area Admin</h1>
+            <p id="status" class="muted">Carregando...</p>
+        </div>
+        <div class="actions">
+            <a class="button secondary" href="/dashbord.html">Area do cliente</a>
+            <a class="button secondary" href="/barber.html">Area do barbeiro</a>
+            <button id="logout">Sair</button>
+        </div>
+    </div>
+
+    <section class="card">
+        <h2>Promover barbeiro para admin</h2>
+        <p class="muted">Somente usuarios ADMIN conseguem acessar esta rota no backend.</p>
+        <div id="users" class="grid"></div>
+        <p id="message"></p>
+    </section>
+</div>
+
+<script>
+const API = "http://localhost:3000";
+
+async function apiFetch(url, options = {}) {
+    const res = await fetch(API + url, {
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...options.headers },
+        ...options
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+        throw new Error(data?.message || "Erro na requisicao");
+    }
+
+    return data;
+}
+
+function getList(response) {
+    return Array.isArray(response) ? response : response?.data || [];
+}
+
+async function loadProfile() {
+    const res = await apiFetch("/api/profile");
+    const user = res.data || res;
+
+    if (user.role !== "ADMIN") {
+        window.location.href = "/dashbord.html";
+        return;
+    }
+
+    document.getElementById("status").innerText = `${user.name} - ${user.role}`;
+}
+
+async function promoteUser(id) {
+    const message = document.getElementById("message");
+    message.className = "muted";
+    message.innerText = "Promovendo usuario...";
+
+    try {
+        await apiFetch(`/api/users/${id}/promote-admin`, {
+            method: "PATCH"
+        });
+
+        message.className = "success";
+        message.innerText = "Usuario promovido para admin.";
+        await loadUsers();
+    } catch (error) {
+        message.className = "error";
+        message.innerText = error.message;
+    }
+}
+
+async function loadUsers() {
+    const users = getList(await apiFetch("/api/users"));
+    const container = document.getElementById("users");
+    container.innerHTML = "";
+
+    const barbers = users.filter(user => user.role === "BARBER");
+
+    if (!barbers.length) {
+        container.innerHTML = '<p class="muted">Nenhum barbeiro disponivel para promover.</p>';
+        return;
+    }
+
+    barbers.forEach(user => {
+        const div = document.createElement("div");
+        div.className = "user";
+        div.innerHTML = `
+            <h3>${user.name}</h3>
+            <p>${user.email}</p>
+            <p><strong>Funcao atual:</strong> ${user.role}</p>
+            <button onclick="promoteUser(${user.id})">Promover para admin</button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+document.getElementById("logout").onclick = async () => {
+    try {
+        await apiFetch("/api/logout", { method: "POST" });
+    } finally {
+        window.location.href = "/login.html";
+    }
+};
+
+async function init() {
+    try {
+        await loadProfile();
+        await loadUsers();
+    } catch (error) {
+        const message = document.getElementById("message");
+        message.className = "error";
+        message.innerText = error.message;
+    }
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Area do Barbeiro</title>
+
+<style>
+:root {
+    color-scheme: dark;
+    --panel: #1e1e1e;
+    --panel-2: #2a2a2a;
+    --muted: #b9b9b9;
+    --danger: #ff6b6b;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f0f0f, #2b2b2b);
+    color: #fff;
+}
+
+.container {
+    width: min(1100px, 100%);
+    margin: auto;
+    padding: 20px;
+}
+
+.header,
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.card,
+.appointment {
+    background: var(--panel);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.appointment {
+    background: var(--panel-2);
+    margin-top: 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+button,
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 11px 15px;
+    cursor: pointer;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.button.secondary,
+button.secondary {
+    background: #333;
+    color: #fff;
+}
+
+button:hover,
+.button:hover {
+    background: #ddd;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+.error {
+    color: var(--danger);
+}
+
+@media (max-width: 640px) {
+    .header,
+    .actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    button,
+    .button {
+        width: 100%;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+    <div class="header">
+        <div>
+            <h1>Area do Barbeiro</h1>
+            <p id="status" class="muted">Carregando...</p>
+        </div>
+        <div class="actions">
+            <a class="button secondary" href="/dashbord.html">Area do cliente</a>
+            <a id="adminLink" class="button secondary" href="/admin.html" hidden>Area admin</a>
+            <button id="logout">Sair</button>
+        </div>
+    </div>
+
+    <section class="card">
+        <h2>Agendamentos recebidos</h2>
+        <p class="muted">Aqui o barbeiro ve o cliente, servico, horario e pode atualizar o status.</p>
+        <div id="appointments" class="grid"></div>
+        <p id="message" class="error"></p>
+    </section>
+</div>
+
+<script>
+const API = "http://localhost:3000";
+
+async function apiFetch(url, options = {}) {
+    const res = await fetch(API + url, {
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...options.headers },
+        ...options
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+        throw new Error(data?.message || "Erro na requisicao");
+    }
+
+    return data;
+}
+
+function getList(response) {
+    return Array.isArray(response) ? response : response?.data || [];
+}
+
+function formatDate(value) {
+    return new Date(value).toLocaleString("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "short"
+    });
+}
+
+async function loadProfile() {
+    const res = await apiFetch("/api/profile");
+    const user = res.data || res;
+
+    if (!["BARBER", "ADMIN"].includes(user.role)) {
+        window.location.href = "/dashbord.html";
+        return;
+    }
+
+    document.getElementById("status").innerText = `${user.name} - ${user.role}`;
+    document.getElementById("adminLink").hidden = user.role !== "ADMIN";
+}
+
+async function updateStatus(id, status) {
+    await apiFetch(`/api/appointments/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ status })
+    });
+
+    await loadAppointments();
+}
+
+async function loadAppointments() {
+    const appointments = getList(await apiFetch("/api/appointments"));
+    const container = document.getElementById("appointments");
+    container.innerHTML = "";
+
+    if (!appointments.length) {
+        container.innerHTML = '<p class="muted">Nenhum agendamento encontrado.</p>';
+        return;
+    }
+
+    appointments.forEach(appointment => {
+        const div = document.createElement("div");
+        div.className = "appointment";
+        div.innerHTML = `
+            <h3>${appointment.service?.name || "Servico"}</h3>
+            <p><strong>Cliente:</strong> ${appointment.client?.name || "-"}</p>
+            <p><strong>Email:</strong> ${appointment.client?.email || "-"}</p>
+            <p><strong>Horario:</strong> ${formatDate(appointment.scheduledAt)}</p>
+            <p><strong>Status:</strong> ${appointment.status}</p>
+            <p class="muted">${appointment.notes || ""}</p>
+            <div class="actions">
+                <button onclick="updateStatus(${appointment.id}, 'CONFIRMED')">Confirmar</button>
+                <button onclick="updateStatus(${appointment.id}, 'DONE')">Concluir</button>
+                <button class="secondary" onclick="updateStatus(${appointment.id}, 'CANCELED')">Cancelar</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+document.getElementById("logout").onclick = async () => {
+    try {
+        await apiFetch("/api/logout", { method: "POST" });
+    } finally {
+        window.location.href = "/login.html";
+    }
+};
+
+async function init() {
+    try {
+        await loadProfile();
+        await loadAppointments();
+    } catch (error) {
+        document.getElementById("message").innerText = error.message;
+    }
+}
+
+init();
+</script>
+</body>
+</html>

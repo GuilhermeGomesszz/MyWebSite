@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: linear-gradient(135deg, #111, #333);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 300px;
+    text-align: center;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background: black;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+a {
+    display: block;
+    margin-top: 10px;
+    color: blue;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>Login 💈</h2>
+
+    <input id="email" placeholder="email">
+    <input id="password" type="password" placeholder="senha">
+
+    <button onclick="login()">Entrar</button>
+
+    <a onclick="goRegister()">Não tem conta? Criar conta</a>
+</div>
+
+<script>
+async function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const res = await fetch("http://localhost:3000/api/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (data.status === "success") {
+        const role = data.data?.role;
+
+        if (role === "ADMIN") {
+            window.location.href = "/admin.html";
+            return;
+        }
+
+        if (role === "BARBER") {
+            window.location.href = "/barber.html";
+            return;
+        }
+
+        window.location.href = "/dashbord.html";
+    } else {
+        alert(data.message);
+    }
+}
+
+function goRegister() {
+    window.location.href = "./register.html";
+}
+</script>
+
+</body>
+</html>

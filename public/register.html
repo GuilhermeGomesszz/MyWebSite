@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:linear-gradient(135deg,#000,#444);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.card{
+    background:#fff;
+    width:360px;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+
+h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+input, select, textarea{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    box-sizing:border-box;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    background:#000;
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#222;
+}
+
+a{
+    display:block;
+    text-align:center;
+    margin-top:15px;
+    cursor:pointer;
+    color:#0b63f6;
+}
+
+#specialtiesContainer{
+    display:none;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>💈 Registro</h2>
+
+<input id="name" placeholder="Nome" />
+<input id="email" type="email" placeholder="Email" />
+<input id="phone" placeholder="Telefone" />
+<input id="password" type="password" placeholder="Senha" />
+
+<select id="role" onchange="toggleSpecialties()">
+    <option value="CLIENT">Cliente</option>
+    <option value="BARBER">Barbeiro</option>
+</select>
+
+<div id="specialtiesContainer">
+<textarea id="specialties"
+placeholder="Especialidades (separadas por vírgula)
+Ex: Corte, Barba, Degradê"></textarea>
+</div>
+
+<button onclick="register()">Criar conta</button>
+
+<a onclick="goLogin()">Já possui conta? Faça login</a>
+
+</div>
+
+<script>
+
+function toggleSpecialties(){
+    const role = document.getElementById("role").value;
+    document.getElementById("specialtiesContainer").style.display =
+        role === "BARBER" ? "block" : "none";
+}
+
+async function register() {
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const phone = document.getElementById("phone").value;
+    const password = document.getElementById("password").value;
+    const role = document.getElementById("role").value;
+
+    const specialtiesRaw = document.getElementById("specialties").value;
+
+    const specialties = specialtiesRaw
+        ? specialtiesRaw.split(",").map(s => s.trim())
+        : [];
+
+    const res = await fetch("http://localhost:3000/api/regi", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            name,
+            email,
+            phone,
+            password,
+            role,
+            specialties
+        })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        console.log("Erro backend:", data);
+        alert(data.message || "Erro ao registrar");
+        return;
+    }
+
+    console.log("Usuário criado:", data);
+
+    alert("Conta criada com sucesso!");
+    window.location.href = "./login.html";
+}
+
+function goLogin(){
+    window.location.href="./login.html";
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Barbearia API</title>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+
+<body>
+    <div class="container">
+        <h1>💈 Sistema de Barbearia</h1>
+
+        <p>Bem-vindo ao sistema de agendamentos</p>
+
+        <div class="card">
+            <button onclick="goLogin()">Entrar</button>
+            <button onclick="goServices()">Ver serviços</button>
+        </div>
+    </div>
+
+    <script>
+        function goLogin() {
+            window.location.href = "./login.html";
+        }
+
+        function goServices() {
+            window.location.href = "./services.html";
+        }
+    </script>
+</body>
+</html>
