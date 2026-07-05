@@ -10,12 +10,12 @@ import {
 
 const router = express.Router();
 
-// 🧺 sacola
-router.post("/adicionar", authMiddleware, addToCart);
-router.get("/ver", authMiddleware, getCart);
+// Sacola
+router.post("/api/cart/adicionar", authMiddleware, addToCart);
+router.get("/api/cart", authMiddleware, getCart);
 
-// ✏️ item
-router.put("/:id", authMiddleware, updateCartItem);
-router.delete("/:id", authMiddleware, removeCartItem);
+// Item
+router.put("/api/cart/:id", authMiddleware, updateCartItem);
+router.delete("/api/cart/:id", authMiddleware, removeCartItem);
 
 export default router;

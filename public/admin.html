@@ -32,12 +32,53 @@
             </div>
         </section>
 
-        <!-- Promover usuarios -->
+        <!-- CRUD de Servicos -->
         <section class="card fade-in fade-in-delay-1">
+            <div class="card-header">
+                <h2>&#9986; Gerenciar Servicos</h2>
+                <button class="btn btn-primary btn-sm" onclick="showCreateForm()">+ Novo Servico</button>
+            </div>
+
+            <!-- Formulario de criar/editar -->
+            <div id="serviceForm" class="hidden">
+                <h3 id="formTitle" class="mb-md">Novo Servico</h3>
+                <input type="hidden" id="editingId" value="">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="svcName">Nome</label>
+                        <input id="svcName" class="form-input" placeholder="Ex: Corte Classico">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="svcDuration">Duracao (minutos)</label>
+                        <input id="svcDuration" type="number" class="form-input" placeholder="45" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="svcPrice">Preco (R$)</label>
+                        <input id="svcPrice" type="number" class="form-input" placeholder="45.00" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group mt-md">
+                    <label class="form-label" for="svcDescription">Descricao (opcional)</label>
+                    <textarea id="svcDescription" class="form-textarea" placeholder="Descreva o servico..."></textarea>
+                </div>
+                <div class="btn-group mt-md">
+                    <button class="btn btn-primary" onclick="saveService()">Salvar</button>
+                    <button class="btn btn-ghost" onclick="cancelForm()">Cancelar</button>
+                </div>
+                <p id="serviceMessage"></p>
+                <div class="divider"></div>
+            </div>
+
+            <div id="servicesList" class="grid"></div>
+            <p id="servicesInfo"></p>
+        </section>
+
+        <!-- Promover usuarios -->
+        <section class="card fade-in fade-in-delay-2">
             <div class="card-header">
                 <h2>&#11088; Promover para Admin</h2>
             </div>
-            <p class="text-muted mb-lg">Selecione um barbeiro para promover ao cargo de administrador. Apenas admins acessam esta funcionalidade.</p>
+            <p class="text-muted mb-lg">Selecione um barbeiro para promover ao cargo de administrador.</p>
             <div id="users" class="grid"></div>
             <p id="message"></p>
         </section>
@@ -61,6 +102,8 @@ function getList(response) {
     return Array.isArray(response) ? response : response?.data || [];
 }
 
+// ========== PROFILE ==========
+
 async function loadProfile() {
     const res = await apiFetch("/api/profile");
     const user = res.data || res;
@@ -73,6 +116,138 @@ async function loadProfile() {
     document.getElementById("status").textContent = user.name + " - Administrador";
 }
 
+// ========== CRUD SERVICOS ==========
+
+function showCreateForm() {
+    document.getElementById("serviceForm").classList.remove("hidden");
+    document.getElementById("formTitle").textContent = "Novo Servico";
+    document.getElementById("editingId").value = "";
+    document.getElementById("svcName").value = "";
+    document.getElementById("svcDuration").value = "";
+    document.getElementById("svcPrice").value = "";
+    document.getElementById("svcDescription").value = "";
+    document.getElementById("serviceMessage").textContent = "";
+    document.getElementById("serviceMessage").className = "";
+}
+
+function showEditForm(service) {
+    document.getElementById("serviceForm").classList.remove("hidden");
+    document.getElementById("formTitle").textContent = "Editar: " + service.name;
+    document.getElementById("editingId").value = service.id;
+    document.getElementById("svcName").value = service.name;
+    document.getElementById("svcDuration").value = service.durationMinutes;
+    document.getElementById("svcPrice").value = (service.priceInCents / 100).toFixed(2);
+    document.getElementById("svcDescription").value = service.description || "";
+    document.getElementById("serviceMessage").textContent = "";
+    document.getElementById("serviceMessage").className = "";
+}
+
+function cancelForm() {
+    document.getElementById("serviceForm").classList.add("hidden");
+}
+
+async function saveService() {
+    var msgEl = document.getElementById("serviceMessage");
+    var editingId = document.getElementById("editingId").value;
+
+    var name = document.getElementById("svcName").value.trim();
+    var duration = parseInt(document.getElementById("svcDuration").value);
+    var price = parseFloat(document.getElementById("svcPrice").value);
+    var description = document.getElementById("svcDescription").value.trim();
+
+    if (!name || !duration || isNaN(price)) {
+        msgEl.className = "msg msg-error";
+        msgEl.textContent = "Preencha nome, duracao e preco.";
+        return;
+    }
+
+    var body = {
+        name: name,
+        durationMinutes: duration,
+        priceInCents: Math.round(price * 100),
+        description: description || undefined
+    };
+
+    msgEl.className = "msg msg-info";
+    msgEl.textContent = "Salvando...";
+
+    try {
+        if (editingId) {
+            await apiFetch("/api/services/" + editingId, {
+                method: "PUT",
+                body: JSON.stringify(body)
+            });
+            msgEl.className = "msg msg-success";
+            msgEl.textContent = "Servico atualizado!";
+        } else {
+            await apiFetch("/api/services", {
+                method: "POST",
+                body: JSON.stringify(body)
+            });
+            msgEl.className = "msg msg-success";
+            msgEl.textContent = "Servico criado!";
+        }
+
+        await loadServices();
+        setTimeout(function() { cancelForm(); }, 1500);
+    } catch (error) {
+        msgEl.className = "msg msg-error";
+        msgEl.textContent = error.message;
+    }
+}
+
+async function deleteService(id, name) {
+    if (!confirm('Tem certeza que deseja excluir "' + name + '"?')) return;
+
+    var msgEl = document.getElementById("servicesInfo");
+    msgEl.className = "msg msg-info";
+    msgEl.textContent = "Excluindo...";
+
+    try {
+        await apiFetch("/api/services/" + id, { method: "DELETE" });
+        msgEl.className = "msg msg-success";
+        msgEl.textContent = "Servico excluido!";
+        await loadServices();
+        setTimeout(function() { msgEl.textContent = ""; msgEl.className = ""; }, 3000);
+    } catch (error) {
+        msgEl.className = "msg msg-error";
+        msgEl.textContent = error.message;
+    }
+}
+
+// Guarda os servicos para o botao editar acessar
+var servicesCache = [];
+
+async function loadServices() {
+    const services = getList(await apiFetch("/api/services"));
+    servicesCache = services;
+    const container = document.getElementById("servicesList");
+    container.innerHTML = "";
+
+    if (!services.length) {
+        container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">&#9986;</div><p>Nenhum servico cadastrado.</p></div>';
+        return;
+    }
+
+    services.forEach(function(service, index) {
+        var div = document.createElement("div");
+        div.className = "item-card";
+        div.innerHTML =
+            '<h3>' + service.name + '</h3>' +
+            '<p>' + (service.description || '<em class="text-muted">Sem descricao</em>') + '</p>' +
+            '<span class="duration">&#9202; ' + service.durationMinutes + ' min</span>' +
+            '<div class="price">R$ ' + (service.priceInCents / 100).toFixed(2) + '</div>' +
+            '<div class="divider"></div>' +
+            '<div class="btn-group">' +
+                '<button class="btn btn-secondary btn-sm" onclick="showEditForm(servicesCache[' + index + '])">Editar</button>' +
+                '<button class="btn btn-danger btn-sm" onclick="deleteService(' + service.id + ', \'' + service.name.replace(/'/g, "\\'") + '\')">Excluir</button>' +
+            '</div>';
+        container.appendChild(div);
+    });
+}
+
+// ========== PROMOVER USUARIOS ==========
+
 async function promoteUser(id) {
     var msgEl = document.getElementById("message");
     msgEl.className = "msg msg-info";
@@ -81,7 +256,7 @@ async function promoteUser(id) {
     try {
         await apiFetch("/api/users/" + id + "/promote-admin", { method: "PATCH" });
         msgEl.className = "msg msg-success";
-        msgEl.textContent = "Usuario promovido para admin com sucesso!";
+        msgEl.textContent = "Usuario promovido para admin!";
         await loadUsers();
         setTimeout(function() { msgEl.textContent = ""; msgEl.className = ""; }, 4000);
     } catch (error) {
@@ -115,6 +290,8 @@ async function loadUsers() {
     });
 }
 
+// ========== LOGOUT & INIT ==========
+
 document.getElementById("logout").onclick = async function() {
     try { await apiFetch("/api/logout", { method: "POST" }); } finally { window.location.href = "/login.html"; }
 };
@@ -122,7 +299,7 @@ document.getElementById("logout").onclick = async function() {
 async function init() {
     try {
         await loadProfile();
-        await loadUsers();
+        await Promise.all([loadServices(), loadUsers()]);
     } catch (error) {
         var msgEl = document.getElementById("message");
         msgEl.className = "msg msg-error";
