@@ -1,134 +1,47 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Area do Barbeiro</title>
-
-<style>
-:root {
-    color-scheme: dark;
-    --panel: #1e1e1e;
-    --panel-2: #2a2a2a;
-    --muted: #b9b9b9;
-    --danger: #ff6b6b;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #0f0f0f, #2b2b2b);
-    color: #fff;
-}
-
-.container {
-    width: min(1100px, 100%);
-    margin: auto;
-    padding: 20px;
-}
-
-.header,
-.actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.card,
-.appointment {
-    background: var(--panel);
-    padding: 20px;
-    border-radius: 8px;
-    margin-top: 20px;
-}
-
-.appointment {
-    background: var(--panel-2);
-    margin-top: 0;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
-}
-
-button,
-.button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-    color: #000;
-    border: none;
-    padding: 11px 15px;
-    cursor: pointer;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 700;
-}
-
-.button.secondary,
-button.secondary {
-    background: #333;
-    color: #fff;
-}
-
-button:hover,
-.button:hover {
-    background: #ddd;
-}
-
-.muted {
-    color: var(--muted);
-}
-
-.error {
-    color: var(--danger);
-}
-
-@media (max-width: 640px) {
-    .header,
-    .actions {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    button,
-    .button {
-        width: 100%;
-    }
-}
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Area do Barbeiro - BarberShop</title>
+    <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body>
-<div class="container">
-    <div class="header">
-        <div>
-            <h1>Area do Barbeiro</h1>
-            <p id="status" class="muted">Carregando...</p>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-brand"><span>Barber</span>Shop</a>
+            <div class="navbar-links">
+                <a class="btn btn-ghost btn-sm" href="/dashbord.html">Meu Painel</a>
+                <a id="adminLink" class="btn btn-ghost btn-sm hidden" href="/admin.html">Area Admin</a>
+                <button id="logout" class="btn btn-secondary btn-sm">Sair</button>
+            </div>
         </div>
-        <div class="actions">
-            <a class="button secondary" href="/dashbord.html">Area do cliente</a>
-            <a id="adminLink" class="button secondary" href="/admin.html" hidden>Area admin</a>
-            <button id="logout">Sair</button>
-        </div>
-    </div>
+    </nav>
 
-    <section class="card">
-        <h2>Agendamentos recebidos</h2>
-        <p class="muted">Aqui o barbeiro ve o cliente, servico, horario e pode atualizar o status.</p>
-        <div id="appointments" class="grid"></div>
-        <p id="message" class="error"></p>
-    </section>
-</div>
+    <div class="container">
+        <!-- Header -->
+        <section class="card fade-in">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h2>&#9986; Area do Barbeiro</h2>
+                    <p id="status" class="text-muted" style="margin-top: 4px;">Carregando...</p>
+                </div>
+                <span class="badge badge-role">BARBEIRO</span>
+            </div>
+        </section>
+
+        <!-- Agendamentos -->
+        <section class="card fade-in fade-in-delay-1">
+            <div class="card-header">
+                <h2>&#128203; Agendamentos recebidos</h2>
+            </div>
+            <p class="text-muted mb-lg">Gerencie os agendamentos dos seus clientes. Confirme, conclua ou cancele.</p>
+            <div id="appointments" class="grid"></div>
+            <p id="message"></p>
+        </section>
+    </div>
 
 <script>
 const API = "http://localhost:3000";
@@ -139,13 +52,8 @@ async function apiFetch(url, options = {}) {
         headers: { "Content-Type": "application/json", ...options.headers },
         ...options
     });
-
     const data = await res.json().catch(() => null);
-
-    if (!res.ok) {
-        throw new Error(data?.message || "Erro na requisicao");
-    }
-
+    if (!res.ok) throw new Error(data?.message || "Erro na requisicao");
     return data;
 }
 
@@ -155,9 +63,14 @@ function getList(response) {
 
 function formatDate(value) {
     return new Date(value).toLocaleString("pt-BR", {
-        dateStyle: "short",
-        timeStyle: "short"
+        dateStyle: "short", timeStyle: "short"
     });
+}
+
+function statusBadge(status) {
+    const map = { 'PENDING': 'pending', 'CONFIRMED': 'confirmed', 'DONE': 'done', 'CANCELED': 'canceled' };
+    const labels = { 'PENDING': 'Pendente', 'CONFIRMED': 'Confirmado', 'DONE': 'Concluido', 'CANCELED': 'Cancelado' };
+    return '<span class="badge badge-' + (map[status] || 'pending') + '">' + (labels[status] || status) + '</span>';
 }
 
 async function loadProfile() {
@@ -169,17 +82,28 @@ async function loadProfile() {
         return;
     }
 
-    document.getElementById("status").innerText = `${user.name} - ${user.role}`;
-    document.getElementById("adminLink").hidden = user.role !== "ADMIN";
+    document.getElementById("status").textContent = user.name + " - Barbeiro";
+    document.getElementById("adminLink").classList.toggle("hidden", user.role !== "ADMIN");
 }
 
 async function updateStatus(id, status) {
-    await apiFetch(`/api/appointments/${id}`, {
-        method: "PUT",
-        body: JSON.stringify({ status })
-    });
+    var msgEl = document.getElementById("message");
+    msgEl.className = "msg msg-info";
+    msgEl.textContent = "Atualizando...";
 
-    await loadAppointments();
+    try {
+        await apiFetch("/api/appointments/" + id, {
+            method: "PUT",
+            body: JSON.stringify({ status: status })
+        });
+        msgEl.className = "msg msg-success";
+        msgEl.textContent = "Status atualizado!";
+        await loadAppointments();
+        setTimeout(function() { msgEl.textContent = ""; msgEl.className = ""; }, 3000);
+    } catch (error) {
+        msgEl.className = "msg msg-error";
+        msgEl.textContent = error.message;
+    }
 }
 
 async function loadAppointments() {
@@ -188,36 +112,34 @@ async function loadAppointments() {
     container.innerHTML = "";
 
     if (!appointments.length) {
-        container.innerHTML = '<p class="muted">Nenhum agendamento encontrado.</p>';
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#128197;</div><p>Nenhum agendamento encontrado.</p></div>';
         return;
     }
 
-    appointments.forEach(appointment => {
-        const div = document.createElement("div");
-        div.className = "appointment";
-        div.innerHTML = `
-            <h3>${appointment.service?.name || "Servico"}</h3>
-            <p><strong>Cliente:</strong> ${appointment.client?.name || "-"}</p>
-            <p><strong>Email:</strong> ${appointment.client?.email || "-"}</p>
-            <p><strong>Horario:</strong> ${formatDate(appointment.scheduledAt)}</p>
-            <p><strong>Status:</strong> ${appointment.status}</p>
-            <p class="muted">${appointment.notes || ""}</p>
-            <div class="actions">
-                <button onclick="updateStatus(${appointment.id}, 'CONFIRMED')">Confirmar</button>
-                <button onclick="updateStatus(${appointment.id}, 'DONE')">Concluir</button>
-                <button class="secondary" onclick="updateStatus(${appointment.id}, 'CANCELED')">Cancelar</button>
-            </div>
-        `;
+    appointments.forEach(function(appt) {
+        var div = document.createElement("div");
+        div.className = "item-card";
+        div.innerHTML =
+            '<div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">' +
+                '<h3>' + (appt.service?.name || "Servico") + '</h3>' +
+                statusBadge(appt.status) +
+            '</div>' +
+            '<p><strong>Cliente:</strong> ' + (appt.client?.name || "-") + '</p>' +
+            '<p><strong>Email:</strong> ' + (appt.client?.email || "-") + '</p>' +
+            '<p><strong>Horario:</strong> ' + formatDate(appt.scheduledAt) + '</p>' +
+            (appt.notes ? '<p class="text-muted" style="margin-top: 8px; font-style: italic;">' + appt.notes + '</p>' : '') +
+            '<div class="divider"></div>' +
+            '<div class="btn-group">' +
+                '<button class="btn btn-success btn-sm" onclick="updateStatus(' + appt.id + ', \'CONFIRMED\')">Confirmar</button>' +
+                '<button class="btn btn-primary btn-sm" onclick="updateStatus(' + appt.id + ', \'DONE\')">Concluir</button>' +
+                '<button class="btn btn-danger btn-sm" onclick="updateStatus(' + appt.id + ', \'CANCELED\')">Cancelar</button>' +
+            '</div>';
         container.appendChild(div);
     });
 }
 
-document.getElementById("logout").onclick = async () => {
-    try {
-        await apiFetch("/api/logout", { method: "POST" });
-    } finally {
-        window.location.href = "/login.html";
-    }
+document.getElementById("logout").onclick = async function() {
+    try { await apiFetch("/api/logout", { method: "POST" }); } finally { window.location.href = "/login.html"; }
 };
 
 async function init() {
@@ -225,7 +147,9 @@ async function init() {
         await loadProfile();
         await loadAppointments();
     } catch (error) {
-        document.getElementById("message").innerText = error.message;
+        var msgEl = document.getElementById("message");
+        msgEl.className = "msg msg-error";
+        msgEl.textContent = error.message;
     }
 }
 

@@ -1,212 +1,94 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dashboard Cliente</title>
-
-<style>
-:root {
-    color-scheme: dark;
-    --bg: #111;
-    --panel: #1e1e1e;
-    --panel-2: #2a2a2a;
-    --text: #fff;
-    --muted: #b9b9b9;
-    --danger: #ff6b6b;
-    --success: #73e29b;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #0f0f0f, #2b2b2b);
-    color: var(--text);
-}
-
-.container {
-    width: min(1100px, 100%);
-    margin: auto;
-    padding: 20px;
-}
-
-.header,
-.actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.card {
-    background: var(--panel);
-    padding: 20px;
-    border-radius: 8px;
-    margin-top: 20px;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 15px;
-}
-
-.service,
-.appointment {
-    background: var(--panel-2);
-    padding: 15px;
-    border-radius: 8px;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    gap: 12px;
-}
-
-label {
-    display: grid;
-    gap: 6px;
-    color: var(--muted);
-    font-size: 14px;
-}
-
-input,
-select,
-textarea {
-    width: 100%;
-    border: 1px solid #444;
-    border-radius: 8px;
-    background: #141414;
-    color: var(--text);
-    padding: 11px;
-    font: inherit;
-}
-
-textarea {
-    min-height: 88px;
-    resize: vertical;
-}
-
-button,
-.button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: #fff;
-    color: #000;
-    border: none;
-    padding: 11px 15px;
-    cursor: pointer;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 700;
-}
-
-button:hover,
-.button:hover {
-    background: #ddd;
-}
-
-.button.secondary {
-    background: #333;
-    color: #fff;
-}
-
-.muted {
-    color: var(--muted);
-}
-
-.error {
-    color: var(--danger);
-    margin-top: 10px;
-}
-
-.success {
-    color: var(--success);
-    margin-top: 10px;
-}
-
-@media (max-width: 640px) {
-    .header,
-    .actions {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    button,
-    .button {
-        width: 100%;
-    }
-}
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dashboard - BarberShop</title>
+    <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body>
-<div class="container">
-    <div class="header">
-        <div>
-            <h1>Dashboard Cliente</h1>
-            <p id="status" class="muted">Carregando usuario...</p>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-brand"><span>Barber</span>Shop</a>
+            <div class="navbar-links">
+                <a id="barberLink" class="btn btn-ghost btn-sm hidden" href="/barber.html">Area Barbeiro</a>
+                <a id="adminLink" class="btn btn-ghost btn-sm hidden" href="/admin.html">Area Admin</a>
+                <button id="logout" class="btn btn-secondary btn-sm">Sair</button>
+            </div>
         </div>
-        <div class="actions">
-            <a id="barberLink" class="button secondary" href="/barber.html" hidden>Area do barbeiro</a>
-            <a id="adminLink" class="button secondary" href="/admin.html" hidden>Area admin</a>
-            <button id="logout">Sair</button>
-        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Welcome -->
+        <section class="card fade-in">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h2 id="welcome">Carregando...</h2>
+                    <p id="status" class="text-muted" style="margin-top: 4px;"></p>
+                </div>
+                <span class="badge badge-role" id="roleBadge" style="display: none;"></span>
+            </div>
+        </section>
+
+        <!-- Form de agendamento -->
+        <section class="card fade-in fade-in-delay-1">
+            <div class="card-header">
+                <h2>&#128197; Novo agendamento</h2>
+            </div>
+
+            <form id="appointmentForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="serviceId">Servico</label>
+                        <select id="serviceId" class="form-select" required>
+                            <option value="">Selecione um servico</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="barberId">Barbeiro</label>
+                        <select id="barberId" class="form-select" required>
+                            <option value="">Selecione um barbeiro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="scheduledAt">Data e hora</label>
+                        <input id="scheduledAt" type="datetime-local" class="form-input" required>
+                    </div>
+                </div>
+
+                <div class="form-group mt-md">
+                    <label class="form-label" for="notes">Observacoes (opcional)</label>
+                    <textarea id="notes" class="form-textarea" placeholder="Ex: corte baixo, barba desenhada..."></textarea>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 16px; margin-top: 16px; flex-wrap: wrap;">
+                    <button type="submit" class="btn btn-primary">Agendar</button>
+                    <p id="formMessage"></p>
+                </div>
+            </form>
+        </section>
+
+        <!-- Servicos -->
+        <section class="card fade-in fade-in-delay-2">
+            <div class="card-header">
+                <h2>&#9986; Servicos disponiveis</h2>
+                <a href="/services.html" class="btn btn-ghost btn-sm">Ver todos</a>
+            </div>
+            <div id="services" class="grid"></div>
+            <p id="servicesError" class="msg-muted"></p>
+        </section>
+
+        <!-- Agendamentos -->
+        <section class="card fade-in fade-in-delay-3">
+            <div class="card-header">
+                <h2>&#128203; Meus agendamentos</h2>
+            </div>
+            <div id="appointments" class="grid"></div>
+            <p id="appointmentsError" class="msg-muted"></p>
+        </section>
     </div>
-
-    <section class="card">
-        <h2 id="welcome">Ola</h2>
-        <p class="muted">Escolha um servico, um barbeiro e o horario para criar seu agendamento.</p>
-    </section>
-
-    <section class="card">
-        <h2>Novo agendamento</h2>
-        <form id="appointmentForm">
-            <div class="form-grid">
-                <label>
-                    Servico
-                    <select id="serviceId" required></select>
-                </label>
-                <label>
-                    Barbeiro
-                    <select id="barberId" required></select>
-                </label>
-                <label>
-                    Data e hora
-                    <input id="scheduledAt" type="datetime-local" required>
-                </label>
-            </div>
-            <label style="margin-top: 12px;">
-                Observacoes
-                <textarea id="notes" placeholder="Ex: corte baixo, barba desenhada"></textarea>
-            </label>
-            <div class="actions" style="margin-top: 14px;">
-                <button type="submit">Agendar</button>
-                <p id="formMessage" class="muted"></p>
-            </div>
-        </form>
-    </section>
-
-    <section class="card">
-        <h2>Servicos</h2>
-        <div id="services" class="grid"></div>
-        <p id="servicesError" class="error"></p>
-    </section>
-
-    <section class="card">
-        <h2>Meus agendamentos</h2>
-        <div id="appointments" class="grid"></div>
-        <p id="appointmentsError" class="error"></p>
-    </section>
-</div>
 
 <script>
 const API = "http://localhost:3000";
@@ -217,13 +99,8 @@ async function apiFetch(url, options = {}) {
         headers: { "Content-Type": "application/json", ...options.headers },
         ...options
     });
-
     const data = await res.json().catch(() => null);
-
-    if (!res.ok) {
-        throw new Error(data?.message || "Erro na requisicao");
-    }
-
+    if (!res.ok) throw new Error(data?.message || "Erro na requisicao");
     return data;
 }
 
@@ -233,20 +110,40 @@ function getList(response) {
 
 function formatDate(value) {
     return new Date(value).toLocaleString("pt-BR", {
-        dateStyle: "short",
-        timeStyle: "short"
+        dateStyle: "short", timeStyle: "short"
     });
+}
+
+function statusBadge(status) {
+    const map = {
+        'PENDING': 'pending',
+        'CONFIRMED': 'confirmed',
+        'DONE': 'done',
+        'CANCELED': 'canceled'
+    };
+    const cls = map[status] || 'pending';
+    const labels = {
+        'PENDING': 'Pendente',
+        'CONFIRMED': 'Confirmado',
+        'DONE': 'Concluido',
+        'CANCELED': 'Cancelado'
+    };
+    return '<span class="badge badge-' + cls + '">' + (labels[status] || status) + '</span>';
 }
 
 async function loadProfile() {
     const res = await apiFetch("/api/profile");
     const user = res.data || res;
 
-    document.getElementById("welcome").innerText = `Bem-vindo, ${user.name}`;
-    document.getElementById("status").innerText = `Funcao: ${user.role}`;
+    document.getElementById("welcome").textContent = "Ola, " + user.name;
+    document.getElementById("status").textContent = "Bem-vindo ao seu painel de agendamentos";
 
-    document.getElementById("barberLink").hidden = !["BARBER", "ADMIN"].includes(user.role);
-    document.getElementById("adminLink").hidden = user.role !== "ADMIN";
+    var roleBadge = document.getElementById("roleBadge");
+    roleBadge.textContent = user.role;
+    roleBadge.style.display = "";
+
+    document.getElementById("barberLink").classList.toggle("hidden", !["BARBER", "ADMIN"].includes(user.role));
+    document.getElementById("adminLink").classList.toggle("hidden", user.role !== "ADMIN");
 }
 
 async function loadServices() {
@@ -258,24 +155,22 @@ async function loadServices() {
     select.innerHTML = '<option value="">Selecione um servico</option>';
 
     if (!services.length) {
-        container.innerHTML = '<p class="muted">Nenhum servico cadastrado.</p>';
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#128566;</div><p>Nenhum servico cadastrado ainda.</p></div>';
         return;
     }
 
-    services.forEach(service => {
-        select.insertAdjacentHTML(
-            "beforeend",
-            `<option value="${service.id}">${service.name} - R$ ${(service.priceInCents / 100).toFixed(2)}</option>`
+    services.forEach(function(service) {
+        select.insertAdjacentHTML("beforeend",
+            '<option value="' + service.id + '">' + service.name + ' - R$ ' + (service.priceInCents / 100).toFixed(2) + '</option>'
         );
 
-        const div = document.createElement("div");
-        div.className = "service";
-        div.innerHTML = `
-            <h3>${service.name}</h3>
-            <p>${service.description || ""}</p>
-            <p class="muted">${service.durationMinutes} min</p>
-            <strong>R$ ${(service.priceInCents / 100).toFixed(2)}</strong>
-        `;
+        var div = document.createElement("div");
+        div.className = "item-card";
+        div.innerHTML =
+            '<h3>' + service.name + '</h3>' +
+            '<p>' + (service.description || "") + '</p>' +
+            '<span class="duration">&#9202; ' + service.durationMinutes + ' min</span>' +
+            '<div class="price">R$ ' + (service.priceInCents / 100).toFixed(2) + '</div>';
         container.appendChild(div);
     });
 }
@@ -283,11 +178,10 @@ async function loadServices() {
 async function loadBarbers() {
     const barbers = getList(await apiFetch("/api/barbers"));
     const select = document.getElementById("barberId");
-
     select.innerHTML = '<option value="">Selecione um barbeiro</option>';
 
-    barbers.forEach(barber => {
-        select.insertAdjacentHTML("beforeend", `<option value="${barber.id}">${barber.name}</option>`);
+    barbers.forEach(function(barber) {
+        select.insertAdjacentHTML("beforeend", '<option value="' + barber.id + '">' + barber.name + '</option>');
     });
 }
 
@@ -297,33 +191,33 @@ async function loadAppointments() {
     container.innerHTML = "";
 
     if (!appointments.length) {
-        container.innerHTML = '<p class="muted">Voce ainda nao tem agendamentos.</p>';
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#128197;</div><p>Voce ainda nao tem agendamentos.</p></div>';
         return;
     }
 
-    appointments.forEach(appointment => {
-        const div = document.createElement("div");
-        div.className = "appointment";
-        div.innerHTML = `
-            <h3>${appointment.service?.name || "Servico"}</h3>
-            <p><strong>Barbeiro:</strong> ${appointment.barber?.name || "-"}</p>
-            <p><strong>Horario:</strong> ${formatDate(appointment.scheduledAt)}</p>
-            <p><strong>Status:</strong> ${appointment.status}</p>
-            <p class="muted">${appointment.notes || ""}</p>
-        `;
+    appointments.forEach(function(appt) {
+        var div = document.createElement("div");
+        div.className = "item-card";
+        div.innerHTML =
+            '<div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">' +
+                '<h3>' + (appt.service?.name || "Servico") + '</h3>' +
+                statusBadge(appt.status) +
+            '</div>' +
+            '<p><strong>Barbeiro:</strong> ' + (appt.barber?.name || "-") + '</p>' +
+            '<p><strong>Horario:</strong> ' + formatDate(appt.scheduledAt) + '</p>' +
+            (appt.notes ? '<p class="text-muted" style="margin-top: 8px; font-style: italic;">' + appt.notes + '</p>' : '');
         container.appendChild(div);
     });
 }
 
-document.getElementById("appointmentForm").addEventListener("submit", async (event) => {
+document.getElementById("appointmentForm").addEventListener("submit", async function(event) {
     event.preventDefault();
-
-    const message = document.getElementById("formMessage");
-    message.className = "muted";
-    message.innerText = "Criando agendamento...";
+    var message = document.getElementById("formMessage");
+    message.className = "msg msg-info";
+    message.textContent = "Criando agendamento...";
 
     try {
-        const scheduledAt = document.getElementById("scheduledAt").value;
+        var scheduledAt = document.getElementById("scheduledAt").value;
 
         await apiFetch("/api/appointments", {
             method: "POST",
@@ -336,16 +230,18 @@ document.getElementById("appointmentForm").addEventListener("submit", async (eve
         });
 
         event.target.reset();
-        message.className = "success";
-        message.innerText = "Agendamento criado com sucesso.";
+        message.className = "msg msg-success";
+        message.textContent = "Agendamento criado com sucesso!";
         await loadAppointments();
+
+        setTimeout(function() { message.textContent = ""; message.className = ""; }, 4000);
     } catch (error) {
-        message.className = "error";
-        message.innerText = error.message;
+        message.className = "msg msg-error";
+        message.textContent = error.message;
     }
 });
 
-document.getElementById("logout").onclick = async () => {
+document.getElementById("logout").onclick = async function() {
     try {
         await apiFetch("/api/logout", { method: "POST" });
     } finally {

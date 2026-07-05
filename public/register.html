@@ -1,153 +1,131 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registro</title>
-
-<style>
-body{
-    margin:0;
-    font-family:Arial,Helvetica,sans-serif;
-    background:linear-gradient(135deg,#000,#444);
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-
-.card{
-    background:#fff;
-    width:360px;
-    padding:30px;
-    border-radius:12px;
-    box-shadow:0 10px 30px rgba(0,0,0,.25);
-}
-
-h2{
-    text-align:center;
-    margin-bottom:20px;
-}
-
-input, select, textarea{
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-    box-sizing:border-box;
-}
-
-button{
-    width:100%;
-    padding:12px;
-    background:#000;
-    color:#fff;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#222;
-}
-
-a{
-    display:block;
-    text-align:center;
-    margin-top:15px;
-    cursor:pointer;
-    color:#0b63f6;
-}
-
-#specialtiesContainer{
-    display:none;
-}
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - BarberShop</title>
+    <link rel="stylesheet" href="style.css"/>
+    <style>#specialtiesGroup { display: none; } #specialtiesGroup.visible { display: block; }</style>
 </head>
 
 <body>
+    <div class="page-center">
+        <div class="auth-card fade-in">
+            <h2>Criar conta</h2>
+            <p class="subtitle">Cadastre-se para comecar a agendar</p>
 
-<div class="card">
+            <div class="form-group">
+                <label class="form-label" for="name">Nome</label>
+                <input id="name" class="form-input" placeholder="Seu nome completo">
+            </div>
 
-<h2>💈 Registro</h2>
+            <div class="form-group mt-md">
+                <label class="form-label" for="email">Email</label>
+                <input id="email" type="email" class="form-input" placeholder="seu@email.com">
+            </div>
 
-<input id="name" placeholder="Nome" />
-<input id="email" type="email" placeholder="Email" />
-<input id="phone" placeholder="Telefone" />
-<input id="password" type="password" placeholder="Senha" />
+            <div class="form-group mt-md">
+                <label class="form-label" for="phone">Telefone</label>
+                <input id="phone" class="form-input" placeholder="(00) 00000-0000">
+            </div>
 
-<select id="role" onchange="toggleSpecialties()">
-    <option value="CLIENT">Cliente</option>
-    <option value="BARBER">Barbeiro</option>
-</select>
+            <div class="form-group mt-md">
+                <label class="form-label" for="password">Senha</label>
+                <input id="password" type="password" class="form-input" placeholder="Minimo 6 caracteres">
+            </div>
 
-<div id="specialtiesContainer">
-<textarea id="specialties"
-placeholder="Especialidades (separadas por vírgula)
-Ex: Corte, Barba, Degradê"></textarea>
-</div>
+            <div class="form-group mt-md">
+                <label class="form-label" for="role">Tipo de conta</label>
+                <select id="role" class="form-select" onchange="toggleSpecialties()">
+                    <option value="CLIENT">Cliente</option>
+                    <option value="BARBER">Barbeiro</option>
+                </select>
+            </div>
 
-<button onclick="register()">Criar conta</button>
+            <div id="specialtiesGroup" class="form-group mt-md">
+                <label class="form-label" for="specialties">Especialidades</label>
+                <textarea id="specialties" class="form-textarea"
+                    placeholder="Separadas por virgula: Corte, Barba, Degrade"></textarea>
+            </div>
 
-<a onclick="goLogin()">Já possui conta? Faça login</a>
+            <p id="registerMessage" class="msg msg-error hidden"></p>
 
-</div>
+            <button onclick="register()" class="btn btn-primary btn-lg">
+                Criar conta
+            </button>
 
-<script>
+            <p class="auth-link">
+                Ja possui conta? <span onclick="goLogin()">Fazer login</span>
+            </p>
+        </div>
+    </div>
 
-function toggleSpecialties(){
-    const role = document.getElementById("role").value;
-    document.getElementById("specialtiesContainer").style.display =
-        role === "BARBER" ? "block" : "none";
-}
-
-async function register() {
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const phone = document.getElementById("phone").value;
-    const password = document.getElementById("password").value;
-    const role = document.getElementById("role").value;
-
-    const specialtiesRaw = document.getElementById("specialties").value;
-
-    const specialties = specialtiesRaw
-        ? specialtiesRaw.split(",").map(s => s.trim())
-        : [];
-
-    const res = await fetch("http://localhost:3000/api/regi", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            name,
-            email,
-            phone,
-            password,
-            role,
-            specialties
-        })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-        console.log("Erro backend:", data);
-        alert(data.message || "Erro ao registrar");
-        return;
+    <script>
+    function toggleSpecialties() {
+        const role = document.getElementById("role").value;
+        const container = document.getElementById("specialtiesGroup");
+        if (role === "BARBER") {
+            container.classList.add("visible");
+        } else {
+            container.classList.remove("visible");
+        }
     }
 
-    console.log("Usuário criado:", data);
+    async function register() {
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const phone = document.getElementById("phone").value;
+        const password = document.getElementById("password").value;
+        const role = document.getElementById("role").value;
+        const specialtiesRaw = document.getElementById("specialties").value;
+        const msgEl = document.getElementById("registerMessage");
 
-    alert("Conta criada com sucesso!");
-    window.location.href = "./login.html";
-}
+        msgEl.classList.add("hidden");
 
-function goLogin(){
-    window.location.href="./login.html";
-}
+        if (!name || !email || !password) {
+            msgEl.textContent = "Preencha todos os campos obrigatorios.";
+            msgEl.classList.remove("hidden");
+            return;
+        }
 
-</script>
+        const specialties = specialtiesRaw
+            ? specialtiesRaw.split(",").map(s => s.trim()).filter(Boolean)
+            : [];
 
+        try {
+            const res = await fetch("http://localhost:3000/api/regi", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, phone, password, role, specialties })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                msgEl.textContent = data.message || "Erro ao registrar.";
+                msgEl.classList.remove("hidden");
+                return;
+            }
+
+            msgEl.textContent = "Conta criada com sucesso! Redirecionando...";
+            msgEl.className = "msg msg-success";
+
+            setTimeout(function() {
+                window.location.href = "./login.html";
+            }, 1500);
+        } catch (err) {
+            msgEl.textContent = "Erro de conexao com o servidor.";
+            msgEl.classList.remove("hidden");
+        }
+    }
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") register();
+    });
+
+    function goLogin() {
+        window.location.href = "./login.html";
+    }
+    </script>
 </body>
 </html>

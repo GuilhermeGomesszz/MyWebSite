@@ -3,27 +3,43 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Serviços</title>
+    <title>Servicos - BarberShop</title>
     <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-brand"><span>Barber</span>Shop</a>
+            <div class="navbar-links">
+                <a href="/" class="btn btn-ghost btn-sm">Inicio</a>
+                <a href="./login.html" class="btn btn-primary btn-sm">Entrar</a>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
-        <h1>💈 Serviços da Barbearia</h1>
+        <section class="section-header fade-in" style="text-align: center; padding: 40px 0 20px;">
+            <h1>&#9986; Nossos Servicos</h1>
+            <p>Confira todos os servicos disponiveis na nossa barbearia</p>
+        </section>
 
-        <button onclick="loadServices()">Atualizar</button>
-
-        <div id="services"></div>
+        <div id="services" class="grid fade-in fade-in-delay-1" style="margin-bottom: 60px;"></div>
+        <p id="servicesError" class="text-center text-muted"></p>
     </div>
 
-    <script type="module">
-        const API_URL = "http://localhost:3000";
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 40px 20px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.85rem;">
+        <p>&copy; 2026 BarberShop. Todos os direitos reservados.</p>
+    </footer>
 
-        async function loadServices() {
-            const res = await fetch(`${API_URL}/api/services`, {
-                credentials: "include"
-            });
+    <script>
+    const API_URL = "http://localhost:3000";
 
+    async function loadServices() {
+        try {
+            const res = await fetch(API_URL + "/api/services", { credentials: "include" });
             const response = await res.json();
             const data = Array.isArray(response) ? response : response.data;
 
@@ -31,27 +47,26 @@
             container.innerHTML = "";
 
             if (!Array.isArray(data) || !data.length) {
-                container.innerHTML = "<p>Nenhum serviço encontrado</p>";
+                container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><div class="empty-state-icon">&#128566;</div><p>Nenhum servico cadastrado ainda.</p></div>';
                 return;
             }
 
-            data.forEach(service => {
-                const div = document.createElement("div");
-                div.classList.add("card");
-
-                div.innerHTML = `
-                    <h3>${service.name}</h3>
-                    <p>${service.description || ""}</p>
-                    <p>⏱ ${service.durationMinutes} min</p>
-                    <p>💰 R$ ${(service.priceInCents / 100).toFixed(2)}</p>
-                `;
-
+            data.forEach(function(service) {
+                var div = document.createElement("div");
+                div.className = "item-card";
+                div.innerHTML =
+                    '<h3>' + service.name + '</h3>' +
+                    '<p>' + (service.description || "") + '</p>' +
+                    '<span class="duration">&#9202; ' + service.durationMinutes + ' min</span>' +
+                    '<div class="price">R$ ' + (service.priceInCents / 100).toFixed(2) + '</div>';
                 container.appendChild(div);
             });
+        } catch (err) {
+            document.getElementById("servicesError").textContent = "Erro ao carregar servicos. Verifique se o servidor esta rodando.";
         }
+    }
 
-        // carrega automático
-        loadServices();
+    loadServices();
     </script>
 </body>
 </html>

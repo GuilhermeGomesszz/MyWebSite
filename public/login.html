@@ -1,105 +1,95 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login</title>
-
-<style>
-body {
-    margin: 0;
-    font-family: Arial;
-    background: linear-gradient(135deg, #111, #333);
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.card {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    width: 300px;
-    text-align: center;
-}
-
-input {
-    width: 100%;
-    padding: 10px;
-    margin: 8px 0;
-}
-
-button {
-    width: 100%;
-    padding: 10px;
-    background: black;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-a {
-    display: block;
-    margin-top: 10px;
-    color: blue;
-    cursor: pointer;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - BarberShop</title>
+    <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body>
+    <div class="page-center">
+        <div class="auth-card fade-in">
+            <h2>Bem-vindo de volta</h2>
+            <p class="subtitle">Entre na sua conta para agendar</p>
 
-<div class="card">
-    <h2>Login 💈</h2>
+            <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <input id="email" type="email" class="form-input" placeholder="seu@email.com">
+            </div>
 
-    <input id="email" placeholder="email">
-    <input id="password" type="password" placeholder="senha">
+            <div class="form-group mt-md">
+                <label class="form-label" for="password">Senha</label>
+                <input id="password" type="password" class="form-input" placeholder="Sua senha">
+            </div>
 
-    <button onclick="login()">Entrar</button>
+            <p id="loginMessage" class="msg msg-error hidden"></p>
 
-    <a onclick="goRegister()">Não tem conta? Criar conta</a>
-</div>
+            <button onclick="login()" class="btn btn-primary btn-lg" id="loginBtn">
+                Entrar
+            </button>
 
-<script>
-async function login() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+            <p class="auth-link">
+                Nao tem conta? <span onclick="goRegister()">Criar conta</span>
+            </p>
+        </div>
+    </div>
 
-    const res = await fetch("http://localhost:3000/api/login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify({ email, password })
+    <script>
+    async function login() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const msgEl = document.getElementById("loginMessage");
+
+        msgEl.classList.add("hidden");
+
+        if (!email || !password) {
+            msgEl.textContent = "Preencha todos os campos.";
+            msgEl.classList.remove("hidden");
+            return;
+        }
+
+        try {
+            const res = await fetch("http://localhost:3000/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+
+            if (data.status === "success") {
+                const role = data.data?.role;
+
+                if (role === "ADMIN") {
+                    window.location.href = "/admin.html";
+                    return;
+                }
+
+                if (role === "BARBER") {
+                    window.location.href = "/barber.html";
+                    return;
+                }
+
+                window.location.href = "/dashbord.html";
+            } else {
+                msgEl.textContent = data.message || "Erro ao fazer login.";
+                msgEl.classList.remove("hidden");
+            }
+        } catch (err) {
+            msgEl.textContent = "Erro de conexao com o servidor.";
+            msgEl.classList.remove("hidden");
+        }
+    }
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") login();
     });
 
-    const data = await res.json();
-
-    if (data.status === "success") {
-        const role = data.data?.role;
-
-        if (role === "ADMIN") {
-            window.location.href = "/admin.html";
-            return;
-        }
-
-        if (role === "BARBER") {
-            window.location.href = "/barber.html";
-            return;
-        }
-
-        window.location.href = "/dashbord.html";
-    } else {
-        alert(data.message);
+    function goRegister() {
+        window.location.href = "./register.html";
     }
-}
-
-function goRegister() {
-    window.location.href = "./register.html";
-}
-</script>
-
+    </script>
 </body>
 </html>

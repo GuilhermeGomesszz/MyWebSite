@@ -3,30 +3,63 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Barbearia API</title>
+    <title>Barbearia - Sistema de Agendamentos</title>
     <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body>
-    <div class="container">
-        <h1>💈 Sistema de Barbearia</h1>
-
-        <p>Bem-vindo ao sistema de agendamentos</p>
-
-        <div class="card">
-            <button onclick="goLogin()">Entrar</button>
-            <button onclick="goServices()">Ver serviços</button>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-brand">
+                <span>Barber</span>Shop
+            </a>
+            <div class="navbar-links">
+                <a href="./services.html" class="btn btn-ghost btn-sm">Servicos</a>
+                <a href="./login.html" class="btn btn-primary btn-sm">Entrar</a>
+            </div>
         </div>
-    </div>
+    </nav>
 
-    <script>
-        function goLogin() {
-            window.location.href = "./login.html";
-        }
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-icon fade-in">&#9986;</div>
+        <h1 class="fade-in fade-in-delay-1">Seu estilo, nosso<br>compromisso</h1>
+        <p class="fade-in fade-in-delay-2">
+            Agende seu horario online de forma rapida e pratica.
+            Escolha o servico, o barbeiro e o melhor horario para voce.
+        </p>
+        <div class="btn-group fade-in fade-in-delay-3">
+            <a href="./login.html" class="btn btn-primary btn-lg">Agendar agora</a>
+            <a href="./services.html" class="btn btn-secondary btn-lg">Ver servicos</a>
+        </div>
+    </section>
 
-        function goServices() {
-            window.location.href = "./services.html";
-        }
-    </script>
+    <!-- Features -->
+    <section class="features">
+        <h2 class="fade-in">Por que nos escolher?</h2>
+        <div class="features-grid">
+            <div class="feature-card fade-in fade-in-delay-1">
+                <div class="feature-icon">&#128197;</div>
+                <h3>Agendamento Online</h3>
+                <p>Marque seu horario a qualquer momento, sem precisar ligar ou esperar.</p>
+            </div>
+            <div class="feature-card fade-in fade-in-delay-2">
+                <div class="feature-icon">&#9989;</div>
+                <h3>Profissionais Qualificados</h3>
+                <p>Nossa equipe de barbeiros e especializada e atualizada com as tendencias.</p>
+            </div>
+            <div class="feature-card fade-in fade-in-delay-3">
+                <div class="feature-icon">&#128176;</div>
+                <h3>Precos Justos</h3>
+                <p>Servicos de qualidade com precos acessiveis. Confira nosso catalogo.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 40px 20px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.85rem;">
+        <p>&copy; 2026 BarberShop. Todos os direitos reservados.</p>
+    </footer>
 </body>
 </html>
