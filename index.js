@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
+import compression from "compression";
+import { apiLimiter } from "./middleware/rateLimiter.js";
 import authRoutes from "./routes/auth.js";
 import profileRoutes from "./routes/profile.js";
 import cartRoutes from "./routes/cart.js";
@@ -20,17 +22,19 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ======= MIDDLEWARES (ANTES das rotas e do listen) =======
+app.use(compression());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(cookieParser());
 app.use(urlencoded({ extended: true }));
 app.use(express.json());
+app.use("/api", apiLimiter);
 
 // ======= ROTAS =======
-app.use("/", authRoutes);
-app.use("/", profileRoutes);
-app.use("/", cartRoutes);
-app.use("/", differentPower);
-app.use("/", servicesRoutes);
+app.use("/api", authRoutes);
+app.use("/api", profileRoutes);
+app.use("/api", cartRoutes);
+app.use("/api/appointments", differentPower);
+app.use("/api/services", servicesRoutes);
 
 app.get("/", (req, res) => {
     res.redirect("/login.html");

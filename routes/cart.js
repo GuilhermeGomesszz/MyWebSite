@@ -1,6 +1,7 @@
 import express from "express";
 import authMiddleware from "../middleware/middlewares.js";
 
+
 import {
     addToCart,
     getCart,
@@ -11,11 +12,11 @@ import {
 const router = express.Router();
 
 // Sacola
-router.post("/api/cart/adicionar", authMiddleware, addToCart);
-router.get("/api/cart", authMiddleware, getCart);
+router.get("/cart", authMiddleware, getCart);
+router.post("/cart/add", authMiddleware, addToCart);
+router.put("/cart/:id", authMiddleware, updateCartItem);
+router.delete("/cart/:id", authMiddleware, removeCartItem);
 
-// Item
-router.put("/api/cart/:id", authMiddleware, updateCartItem);
-router.delete("/api/cart/:id", authMiddleware, removeCartItem);
+
 
 export default router;

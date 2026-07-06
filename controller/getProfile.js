@@ -1,4 +1,6 @@
-import { prisma } from "../config/db.js"; // Garanta que o caminho do seu arquivo de banco está correto
+import { prisma } from "../config/db.js";
+import { clearCachePattern } from "../middleware/cache.js";
+
 
 export const getProfile = async (req, res) => {
     try {
@@ -76,32 +78,32 @@ export const searchUsers = async (req, res) => {
     }
 };
 
+// ✅ CORRETO - Sem cache
 export const getBarbers = async (req, res) => {
     try {
         const barbers = await prisma.user.findMany({
-            where: {
-                role: "BARBER"
-            },
+            where: { role: "BARBER" },
             select: {
                 id: true,
                 name: true,
                 email: true,
                 specialties: true
             },
-            orderBy: {
-                name: "asc"
-            }
+            orderBy: { name: "asc" }
         });
 
-        return res.json({
+        return res.status(200).json({
             status: "success",
             data: barbers
         });
     } catch (error) {
-        return res.status(500).json({ message: "Erro ao buscar barbeiros" });
+        console.error("❌ Erro ao buscar barbeiros:", error);
+        return res.status(500).json({ 
+            status: "error",
+            message: "Erro ao buscar barbeiros" 
+        });
     }
 };
-
 export const getUsers = async (req, res) => {
     try {
         const users = await prisma.user.findMany({
@@ -148,6 +150,9 @@ export const promoteToAdmin = async (req, res) => {
                 role: true
             }
         });
+
+        clearCachePattern("/api/users");
+        clearCachePattern("/api/barbers");
 
         return res.json({
             status: "success",

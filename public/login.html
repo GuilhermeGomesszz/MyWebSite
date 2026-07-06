@@ -19,7 +19,10 @@
             </div>
 
             <div class="form-group mt-md">
-                <label class="form-label" for="password">Senha</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xs);">
+                    <label class="form-label" for="password" style="margin-bottom: 0;">Senha</label>
+                    <span onclick="goForgotPassword()" style="font-size: 0.85rem; color: var(--accent); cursor: pointer; transition: color var(--transition-fast);" onmouseover="this.style.color='var(--accent-hover)'" onmouseout="this.style.color='var(--accent)'">Esqueci minha senha?</span>
+                </div>
                 <input id="password" type="password" class="form-input" placeholder="Sua senha">
             </div>
 
@@ -89,6 +92,10 @@
 
     function goRegister() {
         window.location.href = "./register.html";
+    }
+
+    function goForgotPassword() {
+        window.location.href = "./forgot-password.html";
     }
     </script>
 </body>

@@ -1,44 +1,55 @@
 import express from "express";
-
-const router = express.Router()
-
 import authMiddleware from "../middleware/middlewares.js";
+import { 
+    authorizeRoles, 
+    updateAppointment, 
+    createAppointment, 
+    deleteAppointment, 
+    getAppointmentById, 
+    getAppointments 
+} from "../controller/appointmentsController.js";
 
-import { authorizeRoles, updateAppointment, createAppointment, deleteAppointment, getAppointmentById, getAppointments } from "../controller/appointmentsController.js";
+const router = express.Router(); // ✅ APENAS UMA VEZ
 
+// 📋 ROTAS DE AGENDAMENTOS - URLs mais limpas
 
+// POST /appointments - Criar agendamento
 router.post(
-  "/api/appointments",
-  authMiddleware,
-  authorizeRoles("CLIENT"),
-  createAppointment
+    "/",
+    authMiddleware,
+    authorizeRoles("CLIENT"),
+    createAppointment
 );
 
+// PUT /appointments/:id - Atualizar agendamento
 router.put(
-  "/api/appointments/:id",
-  authMiddleware,
-  authorizeRoles("BARBER", "ADMIN"),
-  updateAppointment
+    "/:id",
+    authMiddleware,
+    authorizeRoles("BARBER", "ADMIN"),
+    updateAppointment
 );
 
+// DELETE /appointments/:id - Remover agendamento
 router.delete(
-  "/api/appointments/:id",
-  authMiddleware,
-  authorizeRoles("ADMIN"),
-  deleteAppointment
+    "/:id",
+    authMiddleware,
+    authorizeRoles("ADMIN"),
+    deleteAppointment
 );
 
+// GET /appointments - Listar agendamentos
 router.get(
-  "/api/appointments",
-  authMiddleware,
-  authorizeRoles("ADMIN", "BARBER", "CLIENT"),
-  getAppointments
+    "/",
+    authMiddleware,
+    authorizeRoles("ADMIN", "BARBER", "CLIENT"),
+    getAppointments
 );
 
+// GET /appointments/:id - Buscar agendamento específico
 router.get(
-  "/api/appointments/:id",
-  authMiddleware,
-  getAppointmentById
+    "/:id",
+    authMiddleware,
+    getAppointmentById
 );
 
 export default router;

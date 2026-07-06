@@ -14,15 +14,12 @@ enum Role {
 
 model User {
   id       Int    @id @default(autoincrement())
-
   name     String
   email    String @unique
   password String
-
   phone    String?
 
   role     Role   @default(CLIENT)
-
   specialties String[] @default([])
 
   createdAt DateTime @default(now())
@@ -30,8 +27,17 @@ model User {
 
   barberAppointments Appointment[] @relation("BarberAppointments")
   clientAppointments Appointment[] @relation("ClientAppointments")
+  barberComments Comment[] @relation("BarberComments")
+  clientComments Comment[] @relation("ClientComments")
 
   cart Cart?
+
+  // Índices para consultas comuns em usuários
+  @@index([role])          // Filtrar por tipo de usuário
+  @@index([name])          // Busca por nome
+  @@index([email])         // Já é unique, mas mantido para clareza
+  @@index([role, name])    // Buscar barbeiros/Clientes por nome
+  @@index([createdAt])     // Para ordenar por data de cadastro
 }
 
 model Service {
@@ -46,15 +52,20 @@ model Service {
 
   appointments Appointment[]
   cartItems    CartItem[]
+
+  // Índices para consultas de serviços
+  @@index([name])              // Busca por nome
+  @@index([priceInCents])      // Filtrar por faixa de preço
+  @@index([durationMinutes])   // Filtrar por duração
+  @@index([name, priceInCents]) // Busca com filtro de preço
+  @@index([createdAt])         // Para listar serviços mais recentes
 }
 
 model Appointment {
   id Int @id @default(autoincrement())
 
   scheduledAt DateTime
-
   status String @default("PENDING")
-
   notes String?
 
   barberId Int
@@ -62,13 +73,43 @@ model Appointment {
   serviceId Int
 
   barber User @relation("BarberAppointments", fields: [barberId], references: [id])
-
   client User @relation("ClientAppointments", fields: [clientId], references: [id])
-
   service Service @relation(fields: [serviceId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Índices otimizados para escalabilidade - ESTES SÃO OS MAIS IMPORTANTES!
+  
+  // 1. Para buscar horários disponíveis de um barbeiro (MAIS CRÍTICO)
+  @@index([barberId, scheduledAt, status])
+  
+  // 2. Para dashboard do barbeiro - ver agenda do dia
+  @@index([barberId, scheduledAt])
+  
+  // 3. Para histórico do cliente com ordenação por data
+  @@index([clientId, scheduledAt])
+  
+  // 4. Para notificações/lembretes de agendamentos pendentes
+  @@index([scheduledAt, status])
+  
+  // 5. Para relatórios por período
+  @@index([scheduledAt])
+  
+  // 6. Para filtrar agendamentos por status (já existia)
+  @@index([status])
+  
+  // 7. Para buscas por serviço específico
+  @@index([serviceId])
+  
+  // 8. Para agendamentos de um barbeiro em um status específico
+  @@index([barberId, status])
+  
+  // 9. Para agendamentos de um cliente em um status específico
+  @@index([clientId, status])
+  
+  // 10. Para agendamentos em um período específico com status
+  @@index([scheduledAt, status, barberId])
 }
 
 model Cart {
@@ -80,6 +121,10 @@ model Cart {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Índice para buscar carrinho do usuário (já é unique)
+  @@index([userId]) // Já é unique, mas mantido para clareza
+  @@index([createdAt]) // Para limpar carrinhos antigos
 }
 
 model CartItem {
@@ -93,4 +138,25 @@ model CartItem {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Índices para operações no carrinho
+  @@index([cartId])              // Já existia
+  @@index([serviceId])           // Já existia
+  @@index([cartId, serviceId])   // Para buscar item específico no carrinho
+  @@index([createdAt])           // Para limpar itens antigos do carrinho
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  rating    Int      @default(5)
+  barberId  Int
+  clientId  Int
+  createdAt DateTime @default(now())
+
+  barber    User     @relation("BarberComments", fields: [barberId], references: [id])
+  client    User     @relation("ClientComments", fields: [clientId], references: [id])
+
+  @@index([barberId])
+  @@index([clientId])
 }

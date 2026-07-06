@@ -1,5 +1,4 @@
 import express from "express";
-
 import {
     getBarbers,
     getProfile,
@@ -9,28 +8,34 @@ import {
     promoteToAdmin,
     searchUsers
 } from "../controller/getProfile.js";
-
 import authMiddleware from "../middleware/middlewares.js";
+import { cacheMiddleware } from "../middleware/cache.js";
 
 const router = express.Router();
 
-router.get("/api/profile", authMiddleware, getProfile);
-router.get("/api/users/search", authMiddleware, searchUsers);
-router.get("/api/barbers", authMiddleware, getBarbers);
+// 📋 ROTAS DE PERFIL E USUÁRIOS - SEM PREFIXO
 
-/**
- * 🔥 rota fixa ANTES da dinâmica
- */
-router.get("/api/users", authMiddleware, onlyAdmin, (req, res) => {
-    return getUsers(req, res);
-});
+// ✅ GET /profile - Perfil do usuário logado
+router.get("/profile", authMiddleware,  getProfile);
 
-router.patch("/api/users/:id/promote-admin", authMiddleware, onlyAdmin, promoteToAdmin);
+// ✅ GET /barbers - Listar barbeiros
+router.get("/barbers", authMiddleware, cacheMiddleware(300), getBarbers);
 
-/**
- * 👤 rota dinâmica SEMPRE POR ÚLTIMO
- */
-router.get("/api/users/:id", authMiddleware, getUserById);
+// ✅ GET /users/search - Buscar usuários (DEVE VIR ANTES DO /:id)
+router.get("/users/search", authMiddleware, searchUsers);
 
+// ✅ GET /users - Listar todos os usuários (apenas ADMIN)
+router.get("/users", authMiddleware, onlyAdmin, cacheMiddleware(300), getUsers);
+
+// ✅ PATCH /users/:id/promote-admin - Promover a admin (apenas ADMIN)
+router.patch(
+    "/users/:id/promote-admin", 
+    authMiddleware, 
+    onlyAdmin,  
+    promoteToAdmin
+);
+
+// ✅ GET /users/:id - Buscar usuário por ID (DEVE VIR POR ÚLTIMO)
+router.get("/users/:id", authMiddleware,  getUserById);
 
 export default router;
