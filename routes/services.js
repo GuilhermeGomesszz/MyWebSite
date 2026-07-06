@@ -9,8 +9,8 @@ const router = express.Router();
 
 // 📋 ROTAS DE SERVIÇOS - URLs mais limpas
 
-// ✅ GET /services - Listar serviços (qualquer usuário logado)
-router.get("/", authMiddleware, cacheMiddleware(300), getServices);
+// ✅ GET /services - Listar serviços publicamente
+router.get("/", cacheMiddleware(300), getServices);
 
 // ✅ POST /services - Criar serviço (apenas ADMIN)
 router.post(

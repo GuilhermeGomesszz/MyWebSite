@@ -35,12 +35,11 @@
     </footer>
 
     <script>
-    const API_URL = "http://services";
-
     async function loadServices() {
         try {
-            const res = await fetch(API_URL + "/api/services", { credentials: "include" });
+            const res = await fetch("/api/services", { credentials: "include" });
             const response = await res.json();
+            if (!res.ok) throw new Error(response?.message || "Erro ao carregar servicos.");
             const data = Array.isArray(response) ? response : response.data;
 
             const container = document.getElementById("services");
