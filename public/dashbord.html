@@ -23,12 +23,12 @@
     <div class="container">
         <!-- Welcome -->
         <section class="card fade-in">
-            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div class="header-row">
                 <div>
                     <h2 id="welcome">Carregando...</h2>
-                    <p id="status" class="text-muted" style="margin-top: 4px;"></p>
+                    <p id="status" class="text-muted mt-sm"></p>
                 </div>
-                <span class="badge badge-role" id="roleBadge" style="display: none;"></span>
+                <span class="badge badge-role hidden" id="roleBadge"></span>
             </div>
         </section>
 
@@ -63,7 +63,7 @@
                     <textarea id="notes" class="form-textarea" placeholder="Ex: corte baixo, barba desenhada..."></textarea>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 16px; margin-top: 16px; flex-wrap: wrap;">
+                <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Agendar</button>
                     <p id="formMessage"></p>
                 </div>

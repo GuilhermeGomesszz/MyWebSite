@@ -20,17 +20,17 @@
     </nav>
 
     <div class="container">
-        <section class="section-header fade-in" style="text-align: center; padding: 40px 0 20px;">
-            <h1>&#9986; Nossos Servicos</h1>
-            <p>Confira todos os servicos disponiveis na nossa barbearia</p>
+        <section class="section-header fade-in text-center">
+            <h1>&#9986; Nossos Serviços</h1>
+            <p>Confira todos os serviços disponíveis na nossa barbearia</p>
         </section>
 
-        <div id="services" class="grid fade-in fade-in-delay-1" style="margin-bottom: 60px;"></div>
+        <div id="services" class="grid fade-in fade-in-delay-1 mb-lg"></div>
         <p id="servicesError" class="text-center text-muted"></p>
     </div>
 
     <!-- Footer -->
-    <footer style="text-align: center; padding: 40px 20px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.85rem;">
+    <footer class="footer">
         <p>&copy; 2026 BarberShop. Todos os direitos reservados.</p>
     </footer>
 
@@ -46,7 +46,7 @@
             container.innerHTML = "";
 
             if (!Array.isArray(data) || !data.length) {
-                container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><div class="empty-state-icon">&#128566;</div><p>Nenhum servico cadastrado ainda.</p></div>';
+                container.innerHTML = '<div class="empty-state full"><div class="empty-state-icon">&#128566;</div><p>Nenhum serviço cadastrado ainda.</p></div>';
                 return;
             }
 

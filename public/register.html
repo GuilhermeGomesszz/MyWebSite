@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro - BarberShop</title>
     <link rel="stylesheet" href="style.css"/>
-    <style>#specialtiesGroup { display: none; } #specialtiesGroup.visible { display: block; }</style>
+    <style>
+        #specialtiesGroup { display: none; }
+        #specialtiesGroup.visible { display: block; }
+        .text-link { color: var(--accent); cursor: pointer; transition: color var(--transition-fast); }
+        .text-link:hover { color: var(--accent-hover); }
+    </style>
 </head>
 
 <body>
@@ -55,7 +60,7 @@
             </button>
 
             <p class="auth-link">
-                Ja possui conta? <span onclick="goLogin()">Fazer login</span>
+                Já possui conta? <span class="text-link" onclick="goLogin()">Fazer login</span>
             </p>
         </div>
     </div>
