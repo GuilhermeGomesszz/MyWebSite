@@ -5,9 +5,23 @@ import {Pool} from "pg";
 
 dotenv.config();
 
+const getDatabaseUrl = () => {
+  if (!process.env.DATABASE_URL) {
+    return process.env.DATABASE_URL;
+  }
+
+  const databaseUrl = new URL(process.env.DATABASE_URL);
+  const sslMode = databaseUrl.searchParams.get("sslmode");
+
+  if (["prefer", "require", "verify-ca"].includes(sslMode)) {
+    databaseUrl.searchParams.set("sslmode", "verify-full");
+  }
+
+  return databaseUrl.toString();
+};
 
 const pool = new Pool({
-        connectionString: process.env.DATABASE_URL
+        connectionString: getDatabaseUrl()
 });
 
 const adapter = new PrismaPg(pool);
