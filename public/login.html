@@ -77,7 +77,12 @@
 
                 window.location.href = "/dashbord.html";
             } else {
-                msgEl.textContent = data?.message || "Erro ao fazer login.";
+                const message = data?.message || "Erro ao fazer login.";
+                if (message === "Erro no login" && data?.error) {
+                    msgEl.textContent = "Não foi possível concluir o login no momento. Tente novamente.";
+                } else {
+                    msgEl.textContent = message;
+                }
                 msgEl.classList.remove("hidden");
             }
         } catch (err) {

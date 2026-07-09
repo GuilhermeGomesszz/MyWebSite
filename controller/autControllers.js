@@ -21,14 +21,15 @@ export const register = async (req, res) => {
     }
  
     const { email, name, password, role, phone, specialties } = result.data;
+    const normalizedEmail = email.trim().toLowerCase();
  
     try {
         const checkEmail = await prisma.user.findUnique({
-            where: { email }
+            where: { email: normalizedEmail }
         });
  
         if (checkEmail) {
-            return res.status(400).json({ message: "email já cadastrado" });
+            return res.status(409).json({ message: "Este e-mail já está cadastrado." });
         }
  
         const salt = await bcrypt.genSalt(10);
@@ -36,7 +37,7 @@ export const register = async (req, res) => {
  
         const creating = await prisma.user.create({
             data: {
-                email,
+                email: normalizedEmail,
                 password: hashed,
                 name,
                 role,
@@ -55,7 +56,7 @@ export const register = async (req, res) => {
         return res.status(201).json({
             status: "success",
             data: {
-                email,
+                email: normalizedEmail,
                 name,
                 token,
                 userId: creating.id
@@ -64,7 +65,16 @@ export const register = async (req, res) => {
  
     } catch (error) {
         console.error("Erro ao registrar usuário:", error);
-        return res.status(400).json({ message: "registro falhado", error: error.message });
+
+        if (error?.code === "P2002") {
+            return res.status(409).json({ message: "Este e-mail já está cadastrado." });
+        }
+
+        if (error?.message?.includes("connect") || error?.message?.includes("timeout") || error?.code === "P2021") {
+            return res.status(503).json({ message: "Serviço temporariamente indisponível. Tente novamente em instantes." });
+        }
+
+        return res.status(500).json({ message: "Não foi possível concluir o cadastro. Tente novamente.", error: error.message });
     }
 };
 
@@ -82,10 +92,11 @@ export const login = async (req, res) => {
         }
 
         const { email, password } = result.data;
+        const normalizedEmail = email.trim().toLowerCase();
 
         // 2. BUSCAR USUÁRIO
         const user = await prisma.user.findUnique({
-            where: { email }
+            where: { email: normalizedEmail }
         });
 
         if (!user) {
@@ -129,8 +140,13 @@ export const login = async (req, res) => {
 
 
 export const logout = (req, res) => {
+    const isProd = process.env.NODE_ENV === "production";
+
     res.cookie("jwt", "", {
         httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax",
+        path: "/",
         expires: new Date(0)
     });
     res.status(200).json({message: "logout successful"});
@@ -148,13 +164,15 @@ export const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
 
-        if (!email) {
+        if (!email || typeof email !== "string") {
             return res.status(400).json({ message: "E-mail é obrigatório." });
         }
 
+        const normalizedEmail = email.trim().toLowerCase();
+
         // Verificar se usuário existe
         const user = await prisma.user.findUnique({
-            where: { email }
+            where: { email: normalizedEmail }
         });
 
         if (!user) {
@@ -165,14 +183,14 @@ export const forgotPassword = async (req, res) => {
         const code = crypto.randomInt(100000, 999999).toString();
 
         // Salvar código no cache temporário com expiração em 5 minutos (300 segundos)
-        cache.set(`reset_${email}`, code, 300);
+        cache.set(`reset_${normalizedEmail}`, code, 300);
 
         // Enviar o e-mail
         if (resend) {
             try {
                 await resend.emails.send({
                     from: "onboarding@resend.dev", // Domínio padrão de testes do Resend
-                    to: email,
+                    to: normalizedEmail,
                     subject: "Código de Recuperação de Senha - BarberShop",
                     html: `
                         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
@@ -188,17 +206,17 @@ export const forgotPassword = async (req, res) => {
                         </div>
                     `
                 });
-                console.log(`[Resend] E-mail enviado com sucesso para ${email}`);
+                console.log(`[Resend] E-mail enviado com sucesso para ${normalizedEmail}`);
             } catch (err) {
                 console.error("❌ Erro ao enviar e-mail via Resend:", err);
                 // Fallback para desenvolvimento
                 console.log("\n==================================================");
-                console.log(`[EMAIL SEND FALLBACK] Código de recuperação para ${email}: ${code}`);
+                console.log(`[EMAIL SEND FALLBACK] Código de recuperação para ${normalizedEmail}: ${code}`);
                 console.log("==================================================\n");
             }
         } else {
             console.log("\n==================================================");
-            console.log(`[DEV MODE] Código de recuperação para ${email}: ${code}`);
+            console.log(`[DEV MODE] Código de recuperação para ${normalizedEmail}: ${code}`);
             console.log("==================================================\n");
         }
 
@@ -224,12 +242,14 @@ export const resetPassword = async (req, res) => {
             return res.status(400).json({ message: "E-mail, código e nova senha são obrigatórios." });
         }
 
+        const normalizedEmail = email.trim().toLowerCase();
+
         if (newPassword.length < 6) {
             return res.status(400).json({ message: "A nova senha deve ter no mínimo 6 caracteres." });
         }
 
         // Buscar código no cache
-        const cachedCode = cache.get(`reset_${email}`);
+        const cachedCode = cache.get(`reset_${normalizedEmail}`);
 
         if (!cachedCode) {
             return res.status(400).json({ message: "Código expirado ou inválido. Solicite um novo código." });
@@ -245,12 +265,12 @@ export const resetPassword = async (req, res) => {
 
         // Atualizar no banco de dados
         await prisma.user.update({
-            where: { email },
+            where: { email: normalizedEmail },
             data: { password: hashedPassword }
         });
 
         // Limpar o código do cache para não ser reutilizado
-        cache.del(`reset_${email}`);
+        cache.del(`reset_${normalizedEmail}`);
 
         return res.status(200).json({
             status: "success",

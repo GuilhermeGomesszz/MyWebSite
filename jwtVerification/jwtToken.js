@@ -26,10 +26,13 @@ const generateToken = (userId, role, res) => {
         }
     );
  
+    const isProd = process.env.NODE_ENV === "production";
+
     res.cookie("jwt", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax",
+        path: "/",
         maxAge: 1000 * 60 * 60 * 24 * 7
     });
  

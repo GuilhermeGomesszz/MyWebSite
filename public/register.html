@@ -107,18 +107,21 @@
 
             const data = await res.json().catch(() => null);
 
-            if (!res.ok) {
-                msgEl.textContent = data?.message || "Erro ao registrar.";
+            if (res.ok && (data?.status === "success" || data?.data)) {
+                msgEl.textContent = "Conta criada com sucesso! Redirecionando...";
+                msgEl.className = "msg msg-success";
                 msgEl.classList.remove("hidden");
+
+                setTimeout(function() {
+                    window.location.href = "./login.html";
+                }, 1500);
                 return;
             }
 
-            msgEl.textContent = "Conta criada com sucesso! Redirecionando...";
-            msgEl.className = "msg msg-success";
+            msgEl.textContent = data?.message || data?.error || "Erro ao registrar.";
+            msgEl.className = "msg msg-error";
+            msgEl.classList.remove("hidden");
 
-            setTimeout(function() {
-                window.location.href = "./login.html";
-            }, 1500);
         } catch (err) {
             msgEl.textContent = "Erro de conexao com o servidor.";
             msgEl.classList.remove("hidden");
