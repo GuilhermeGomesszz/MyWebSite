@@ -1,9 +1,11 @@
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
-import {PrismaPg} from "@prisma/adapter-pg";
-import {Pool} from "pg";
+import pkg from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
 dotenv.config();
+
+const { PrismaClient } = pkg;
 
 const getDatabaseUrl = () => {
   if (!process.env.DATABASE_URL) {
