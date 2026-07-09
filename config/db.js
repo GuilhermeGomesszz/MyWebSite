@@ -9,7 +9,7 @@ const { PrismaClient } = pkg;
 
 const getDatabaseUrl = () => {
   if (!process.env.DATABASE_URL) {
-    return process.env.DATABASE_URL;
+    throw new Error("DATABASE_URL is not set.");
   }
 
   const databaseUrl = new URL(process.env.DATABASE_URL);

@@ -7,7 +7,8 @@
     "start" : "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
-    "seed": "node prisma/seed.js",
+    "prepare": "prisma generate",
+    "seed": "npx prisma generate && node prisma/seed.js",
     "postinstall": "prisma generate"
   },
   "keywords": [],
