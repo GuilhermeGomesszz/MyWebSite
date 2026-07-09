@@ -78,7 +78,11 @@
                 window.location.href = "/dashbord.html";
             } else {
                 const message = data?.message || "Erro ao fazer login.";
-                if (message === "Erro no login" && data?.error) {
+                const detail = data?.error || "";
+
+                if (message === "Erro no login" && detail) {
+                    msgEl.textContent = detail;
+                } else if (message === "Erro no login") {
                     msgEl.textContent = "Não foi possível concluir o login no momento. Tente novamente.";
                 } else {
                     msgEl.textContent = message;
