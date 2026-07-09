@@ -12,7 +12,21 @@ const getJwtSecret = () => {
     return "barber-shop-dev-secret-change-me";
 };
 
-const getJwtExpiresIn = () => process.env.JWT_EXPIRES_IN || "7d";
+const getJwtExpiresIn = () => {
+    const rawValue = process.env.JWT_EXPIRES_IN;
+
+    if (!rawValue || !rawValue.trim()) {
+        return "7d";
+    }
+
+    const normalizedValue = rawValue.trim().replace(/^['"]|['"]$/g, "");
+
+    if (/^\d+$/.test(normalizedValue)) {
+        return Number(normalizedValue);
+    }
+
+    return normalizedValue;
+};
  
 const generateToken = (userId, role, res) => {
     const token = jwt.sign(
