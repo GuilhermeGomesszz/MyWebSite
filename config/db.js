@@ -12,7 +12,8 @@ const getDatabaseUrl = () => {
     throw new Error("DATABASE_URL is not set.");
   }
 
-  const databaseUrl = new URL(process.env.DATABASE_URL);
+  const rawUrl = process.env.DATABASE_URL.trim().replace(/^"|"$/g, "");
+  const databaseUrl = new URL(rawUrl);
   const sslMode = databaseUrl.searchParams.get("sslmode");
 
   if (["prefer", "require", "verify-ca"].includes(sslMode)) {
