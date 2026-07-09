@@ -60,9 +60,9 @@
                 body: JSON.stringify({ email, password })
             });
 
-            const data = await res.json();
+            const data = await res.json().catch(() => null);
 
-            if (data.status === "success") {
+            if (res.ok && data?.status === "success") {
                 const role = data.data?.role;
 
                 if (role === "ADMIN") {
@@ -77,7 +77,7 @@
 
                 window.location.href = "/dashbord.html";
             } else {
-                msgEl.textContent = data.message || "Erro ao fazer login.";
+                msgEl.textContent = data?.message || "Erro ao fazer login.";
                 msgEl.classList.remove("hidden");
             }
         } catch (err) {

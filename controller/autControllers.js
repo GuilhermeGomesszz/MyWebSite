@@ -64,7 +64,7 @@ export const register = async (req, res) => {
  
     } catch (error) {
         console.error("Erro ao registrar usuário:", error);
-        return res.status(400).json({ message: "registro falhado" });
+        return res.status(400).json({ message: "registro falhado", error: error.message });
     }
 };
 
@@ -119,6 +119,7 @@ export const login = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("Erro no login:", error);
         return res.status(500).json({
             message: "Erro no login",
             error: error.message

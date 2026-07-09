@@ -105,10 +105,10 @@
                 body: JSON.stringify({ name, email, phone, password, role, specialties })
             });
 
-            const data = await res.json();
+            const data = await res.json().catch(() => null);
 
             if (!res.ok) {
-                msgEl.textContent = data.message || "Erro ao registrar.";
+                msgEl.textContent = data?.message || "Erro ao registrar.";
                 msgEl.classList.remove("hidden");
                 return;
             }
